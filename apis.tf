@@ -1,6 +1,8 @@
 locals {
   apis = [
     "storage.googleapis.com",
+    "cloudbuild.googleapis.com",
+    "compute.googleapis.com",
   ]
 }
 
