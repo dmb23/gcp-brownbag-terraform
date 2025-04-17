@@ -1,0 +1,12 @@
+locals {
+  apis = [
+    "storage.googleapis.com",
+  ]
+}
+
+resource "google_project_service" "project_service" {
+  for_each = toset(local.apis)
+
+  service                    = each.value
+  disable_dependent_services = true
+}
