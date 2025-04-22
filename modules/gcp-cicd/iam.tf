@@ -4,7 +4,7 @@ resource "google_service_account" "cloudbuild_service_account" {
 }
 
 resource "google_project_iam_member" "project_editor" {
-  project = var.project_id
+  project = data.google_project.project.project_id
   role    = "roles/editor"
   member  = "serviceAccount:${google_service_account.cloudbuild_service_account.email}"
 }

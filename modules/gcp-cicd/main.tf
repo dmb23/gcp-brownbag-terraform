@@ -49,3 +49,5 @@ resource "local_file" "default" {
   EOT
 }
 
+data "google_project" "project" {
+}
