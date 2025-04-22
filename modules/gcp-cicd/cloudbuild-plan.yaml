@@ -38,7 +38,7 @@ steps:
   args:
   - -c
   - |
-      terraform plan
+      terraform plan -var project_id=$PROJECT_ID
 
 options:
   logging: CLOUD_LOGGING_ONLY
