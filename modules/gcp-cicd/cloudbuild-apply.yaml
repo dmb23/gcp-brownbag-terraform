@@ -21,7 +21,7 @@ steps:
       echo "***********************"
       echo "$BRANCH_NAME"
       echo "***********************"
-      if [ "$BRANCH_NAME" != "main" ]
+      if [ "$BRANCH_NAME" != "main" ]; then
         return 1
       fi
 
