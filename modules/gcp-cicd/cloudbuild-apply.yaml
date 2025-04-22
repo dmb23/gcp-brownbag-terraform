@@ -21,6 +21,9 @@ steps:
       echo "***********************"
       echo "$BRANCH_NAME"
       echo "***********************"
+      if [ "$BRANCH_NAME" != "main" ]
+        return 1
+      fi
 
 - id: 'tf init'
   name: hashicorp/terraform:${_TF_VERSION}
@@ -38,7 +41,20 @@ steps:
   - |
       terraform plan \
         -input=false \
-        -var project_id=$PROJECT_ID
+        -var project_id=$PROJECT_ID \
+        -out=/workspace/tfplan
+
+- id: 'tf apply'
+  name: hashicorp/terraform:${_TF_VERSION}
+  entrypoint: sh
+  args:
+  - -c
+  - |
+      terraform apply \
+        -input=false \
+        -auto-approve \
+        -var project_id=$PROJECT_ID \
+        tfplan
 
 options:
   logging: CLOUD_LOGGING_ONLY
