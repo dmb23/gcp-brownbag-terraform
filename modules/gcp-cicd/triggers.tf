@@ -16,9 +16,8 @@ resource "google_cloudbuild_trigger" "plan-trigger" {
     approval_required = false
   }
   github {
-    enterprise_config_resource_name = null
-    name                            = "gcp-brownbag-terraform"
-    owner                           = "dmb23"
+    name  = "gcp-brownbag-terraform"
+    owner = "dmb23"
     push {
       branch       = "^main$"
       invert_regex = true
