@@ -1,5 +1,5 @@
 terraform {
-  required_version =">= 1.11.4"
+  required_version = ">= 1.11.4"
   required_providers {
     google = {
       source  = "hashicorp/google"
@@ -17,7 +17,9 @@ provider "google" {
 module "gcp-cicd" {
   source = "./modules/gcp-cicd"
 
-  location = var.region
+  location       = var.region
+  project_id     = var.project_id
+  project_number = google_project.default.number
 }
 
 import {

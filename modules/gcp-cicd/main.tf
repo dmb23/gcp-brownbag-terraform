@@ -1,3 +1,21 @@
+terraform {
+  required_version = ">= 1.11.4"
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "6.30.0"
+    }
+    local = {
+      source  = "hashicorp/local"
+      version = "2.5.2"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "3.7.1"
+    }
+  }
+}
+
 resource "random_id" "default" {
   byte_length = 8
 }
