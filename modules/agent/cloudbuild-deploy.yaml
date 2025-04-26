@@ -20,8 +20,9 @@ steps:
     '--pack',
     '--image=${_REGION}-docker.pkg.dev/${PROJECT}/${_REPOSITORY}/${_IMAGE}',
     ]
-- images:
-    '${_REGION}-docker.pkg.dev/${PROJECT}/${_REPOSITORY}/${_IMAGE}'
+
+images:
+- '${_REGION}-docker.pkg.dev/${PROJECT}/${_REPOSITORY}/${_IMAGE}'
 
 options:
   logging: CLOUD_LOGGING_ONLY
