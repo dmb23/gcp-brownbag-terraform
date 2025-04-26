@@ -56,7 +56,7 @@ resource "google_project_iam_member" "project_iam_role" {
 }
 
 # cloud run trigger to deploy containers
-resource "google_cloudbuild_trigger" "plan-trigger" {
+resource "google_cloudbuild_trigger" "deploy-trigger" {
   description        = "Deploy new container to artifact repository"
   disabled           = false
   filename           = "modules/agent/cloudbuild-deploy.yaml"
@@ -68,15 +68,12 @@ resource "google_cloudbuild_trigger" "plan-trigger" {
   name               = "container-cd-trigger"
   project            = data.google_project.project.project_id
   service_account    = google_service_account.container_service_account.id
-  substitutions = {
-    _TF_VERSION = local.terraform_version
-  }
   tags = []
   approval_config {
     approval_required = false
   }
   github {
-    name  = "gcp-brownbag-agent"
+    name  = "gcp-brownbag-agents"
     owner = "dmb23"
     push {
       branch       = "^main$"
