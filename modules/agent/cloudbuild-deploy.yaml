@@ -13,7 +13,7 @@
 
 steps:
 - id: 'build container'
-  name: gcr.io/${PROJECT_ID}/pack
+  name: buildpacksio/pack:0.37.0
   args: ["build",
     "--builder", 
     "gcr.io/buildpacks/builder", 
