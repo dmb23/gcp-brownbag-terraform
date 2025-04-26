@@ -12,13 +12,12 @@
 
 
 steps:
-- id: 'deploy container'
-  name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  entrypoint: gcloud
-  args: ['builds',
-    'submit',
-    '--pack',
-    '--image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE}',
+- id: 'build container'
+  name: gcr.io/${PROJECT_ID}/pack
+  args: ["build",
+    "--builder", 
+    "gcr.io/buildpacks/builder", 
+    '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE}:latest',
     ]
 
 images:
