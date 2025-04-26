@@ -59,7 +59,6 @@ resource "google_project_iam_member" "project_iam_role" {
 resource "google_cloudbuild_trigger" "deploy-trigger" {
   description        = "Deploy new container to artifact repository"
   disabled           = false
-  filename           = "modules/agent/cloudbuild-deploy.yaml"
   filter             = null
   ignored_files      = []
   include_build_logs = "INCLUDE_BUILD_LOGS_WITH_STATUS"
@@ -73,6 +72,12 @@ resource "google_cloudbuild_trigger" "deploy-trigger" {
     _REGION     = var.region
     _REPOSITORY = google_artifact_registry_repository.cloud-run-containers.repository_id
     _IMAGE      = var.agent_image_name
+  }
+  git_file_source {
+    path      = "modules/agent/cloudbuild-deploy.yaml"
+    uri       = "https://github.com/dmb23/gcp-brownbag-terraform"
+    revision  = "refs/heads/main"
+    repo_type = "GITHUB"
   }
   approval_config {
     approval_required = false
