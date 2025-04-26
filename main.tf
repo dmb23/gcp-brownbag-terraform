@@ -24,7 +24,7 @@ module "gcp-agent" {
   source = "./modules/agent/"
 
   region           = var.region
-  agent_image_name = "Grimaud"
+  agent_image_name = "grimaud"
 }
 
 data "google_project" "project" {
