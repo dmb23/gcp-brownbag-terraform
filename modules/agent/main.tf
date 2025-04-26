@@ -25,10 +25,10 @@ data "google_project" "project" {
 
 # artifact repository for built containers
 resource "google_artifact_registry_repository" "cloud-run-containers" {
-  location = "europe-west9"
+  location      = var.region
   repository_id = "cloud-run-containers"
-  description = "Containers for Cloud Run Jobs"
-  format = "docker"
+  description   = "Containers for Cloud Run Jobs"
+  format        = "docker"
 }
 
 # service account for CI/CD
@@ -68,7 +68,12 @@ resource "google_cloudbuild_trigger" "deploy-trigger" {
   name               = "container-cd-trigger"
   project            = data.google_project.project.project_id
   service_account    = google_service_account.container_service_account.id
-  tags = []
+  tags               = []
+  substitutions = {
+    _REGION     = var.region
+    _REPOSITORY = google_artifact_registry_repository.cloud-run-containers.repository_id
+    _IMAGE      = var.agent_image_name
+  }
   approval_config {
     approval_required = false
   }
@@ -76,7 +81,7 @@ resource "google_cloudbuild_trigger" "deploy-trigger" {
     name  = "gcp-brownbag-agents"
     owner = "dmb23"
     push {
-      branch       = "^main$"
+      branch = "^main$"
     }
   }
 }

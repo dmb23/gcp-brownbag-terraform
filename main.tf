@@ -22,6 +22,9 @@ module "gcp-cicd" {
 
 module "gcp-agent" {
   source = "./modules/agent/"
+
+  region           = var.region
+  agent_image_name = "Grimaud"
 }
 
 data "google_project" "project" {
