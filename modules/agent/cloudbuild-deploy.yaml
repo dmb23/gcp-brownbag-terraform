@@ -18,11 +18,11 @@ steps:
   args: ['builds',
     'submit',
     '--pack',
-    '--image=${_REGION}-docker.pkg.dev/${PROJECT}/${_REPOSITORY}/${_IMAGE}',
+    '--image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE}',
     ]
 
 images:
-- '${_REGION}-docker.pkg.dev/${PROJECT}/${_REPOSITORY}/${_IMAGE}'
+- '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE}'
 
 options:
   logging: CLOUD_LOGGING_ONLY
