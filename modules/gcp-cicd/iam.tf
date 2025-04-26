@@ -7,6 +7,8 @@ locals {
     "roles/storage.admin",
     "roles/serviceusage.serviceUsageAdmin",
     "roles/logging.logWriter",
+    "roles/run.admin",
+    "roles/artifactregistry.admin",
   ]
 }
 
