@@ -6,6 +6,7 @@ locals {
     "roles/iam.securityAdmin",
     "roles/storage.admin",
     "roles/serviceusage.serviceUsageAdmin",
+    "roles/logging.logWriter",
   ]
 }
 
