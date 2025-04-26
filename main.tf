@@ -20,6 +20,13 @@ module "gcp-cicd" {
   location = var.region
 }
 
+module "gcp-agent" {
+  source = "./modules/agent/"
+
+  region           = var.region
+  agent_image_name = "Grimaud"
+}
+
 data "google_project" "project" {
   depends_on = [google_project_service.project_service["cloudresourcemanager.googleapis.com"]]
 }

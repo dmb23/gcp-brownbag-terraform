@@ -21,9 +21,6 @@ steps:
       echo "***********************"
       echo "$BRANCH_NAME"
       echo "***********************"
-      if [ "$BRANCH_NAME" != "main" ]; then
-        return 1
-      fi
 
 - id: 'tf init'
   name: hashicorp/terraform:${_TF_VERSION}
