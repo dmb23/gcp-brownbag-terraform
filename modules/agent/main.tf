@@ -105,3 +105,36 @@ resource "google_storage_bucket" "report-bucket" {
 }
 
 # cloud run job
+resource "google_cloud_run_v2_job" "agent_job" {
+  name     = "agent-job"
+  location = var.region
+
+  template {
+    template {
+      containers {
+        image = "${var.region}-docker.pkg.dev/${data.google_project.project.project_id}/${google_artifact_registry_repository.cloud-run-containers.repository_id}/${var.agent_image_name}"
+        
+        resources {
+          limits = {
+            cpu    = "1"
+            memory = "2Gi"
+          }
+        }
+
+        env {
+          name  = "BUCKET_NAME"
+          value = google_storage_bucket.report-bucket.name
+        }
+      }
+
+      service_account = google_service_account.container_service_account.email
+      timeout = "3600s"
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      launch_stage,
+    ]
+  }
+}
