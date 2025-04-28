@@ -13,14 +13,11 @@
 
 steps:
 - id: 'build container'
-  name: gcr.io/k8s-skaffold/pack:v0.28.0
-  entrypoint: pack
+  name: gcr.io/cloud-builders/docker
   args: ["build",
-    '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE}:latest',
-    "--builder", 
-    "gcr.io/buildpacks/builder", 
-    "--network",
-    "cloudbuild"
+    "-t",
+    '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE}',
+    "."
     ]
 
 images:
@@ -28,5 +25,3 @@ images:
 
 options:
   logging: CLOUD_LOGGING_ONLY
-projectId: ${PROJECT_ID}
-

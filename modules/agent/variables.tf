@@ -1,9 +1,9 @@
 variable "region" {
-  type = string
+  type        = string
   description = "Region for artifact repository"
 }
 
 variable "agent_image_name" {
-  type = string
+  type        = string
   description = "Image Name for Cloud Run Container from gcp-brownbag-agent repo"
 }
