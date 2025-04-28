@@ -44,6 +44,8 @@ locals {
     "roles/run.developer",
     "roles/artifactregistry.writer",
     "roles/iam.serviceAccountUser",
+    "roles/storage.objectViewer",
+    "roles/storage.objectCreator",
   ]
 }
 
@@ -104,6 +106,30 @@ resource "google_storage_bucket" "report-bucket" {
   }
 }
 
+# Secret Manager secrets
+resource "google_secret_manager_secret" "agent_secrets" {
+  for_each = toset([
+    "API_KEY",
+    "DATABASE_URL",
+    # Add other secret names here
+  ])
+
+  secret_id = "agent_${each.key}"
+  
+  replication {
+    auto {}
+  }
+}
+
+# Add IAM permission for Cloud Run to access secrets
+resource "google_secret_manager_secret_iam_member" "secret_access" {
+  for_each = google_secret_manager_secret.agent_secrets
+
+  secret_id = each.value.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.container_service_account.email}"
+}
+
 # cloud run job
 resource "google_cloud_run_v2_job" "agent_job" {
   name     = "agent-job"
@@ -125,10 +151,37 @@ resource "google_cloud_run_v2_job" "agent_job" {
           name  = "BUCKET_NAME"
           value = google_storage_bucket.report-bucket.name
         }
+
+        # Add secret environment variables
+        dynamic "env" {
+          for_each = google_secret_manager_secret.agent_secrets
+          content {
+            name = env.key
+            value_source {
+              secret_key_ref {
+                secret  = env.value.secret_id
+                version = "latest"
+              }
+            }
+          }
+        }
+
+        # Mount GCS bucket using Cloud Storage FUSE
+        volume_mounts {
+          name       = "reports"
+          mount_path = "/mnt/reports"
+        }
+      }
+
+      volumes {
+        name = "reports"
+        cloud_storage {
+          bucket = google_storage_bucket.report-bucket.name
+        }
       }
 
       service_account = google_service_account.container_service_account.email
-      timeout = "3600s"
+      timeout        = "3600s"
     }
   }
 
