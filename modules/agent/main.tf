@@ -73,12 +73,6 @@ resource "google_cloudbuild_trigger" "deploy-trigger" {
     _REPOSITORY = google_artifact_registry_repository.cloud-run-containers.repository_id
     _IMAGE      = var.agent_image_name
   }
-  git_file_source {
-    path      = "modules/agent/cloudbuild-deploy.yaml"
-    uri       = "https://github.com/dmb23/gcp-brownbag-terraform"
-    revision  = "refs/heads/main"
-    repo_type = "GITHUB"
-  }
   approval_config {
     approval_required = false
   }
