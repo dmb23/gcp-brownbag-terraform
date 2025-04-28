@@ -65,6 +65,7 @@ resource "google_cloudbuild_trigger" "deploy-trigger" {
   included_files     = []
   location           = "global"
   name               = "container-cd-trigger"
+  filename           = "cloudbuild-deploy.yaml"
   project            = data.google_project.project.project_id
   service_account    = google_service_account.container_service_account.id
   tags               = []
