@@ -92,5 +92,21 @@ resource "google_cloudbuild_trigger" "deploy-trigger" {
 }
 
 # storage bucket for markdown reports
+resource "random_id" "default" {
+  byte_length = 8
+}
+
+resource "google_storage_bucket" "report-bucket" {
+  name     = "${random_id.default.hex}-grimaud-reports"
+  location = var.region
+
+  force_destroy               = false
+  public_access_prevention    = "enforced"
+  uniform_bucket_level_access = true
+
+  versioning {
+    enabled = true
+  }
+}
 
 # cloud run job
