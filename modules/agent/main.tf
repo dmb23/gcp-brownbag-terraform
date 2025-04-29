@@ -37,9 +37,15 @@ resource "google_service_account" "container_service_account" {
   display_name = "Continous Deployment for Cloud Run Containers Service Account"
 }
 
-# IAM for service account
+# service account for Cloud Run job
+resource "google_service_account" "job_service_account" {
+  account_id   = "cloud-run-job-sa"
+  display_name = "Cloud Run Job Service Account"
+}
+
+# IAM for service accounts
 locals {
-  iam_roles = [
+  cd_iam_roles = [
     "roles/logging.logWriter",
     "roles/run.developer",
     "roles/artifactregistry.writer",
@@ -47,14 +53,28 @@ locals {
     "roles/storage.objectViewer",
     "roles/storage.objectCreator",
   ]
+  
+  job_iam_roles = [
+    "roles/logging.logWriter",
+    "roles/storage.objectViewer",
+    "roles/storage.objectCreator",
+  ]
 }
 
-resource "google_project_iam_member" "project_iam_role" {
-  for_each = toset(local.iam_roles)
+resource "google_project_iam_member" "cd_iam_role" {
+  for_each = toset(local.cd_iam_roles)
 
   project = data.google_project.project.project_id
   role    = each.value
   member  = "serviceAccount:${google_service_account.container_service_account.email}"
+}
+
+resource "google_project_iam_member" "job_iam_role" {
+  for_each = toset(local.job_iam_roles)
+
+  project = data.google_project.project.project_id
+  role    = each.value
+  member  = "serviceAccount:${google_service_account.job_service_account.email}"
 }
 
 # cloud run trigger to deploy containers
@@ -126,7 +146,7 @@ resource "google_secret_manager_secret_iam_member" "secret_access" {
 
   secret_id = each.value.id
   role      = "roles/secretmanager.secretAccessor"
-  member    = "serviceAccount:${google_service_account.container_service_account.email}"
+  member    = "serviceAccount:${google_service_account.job_service_account.email}"
 }
 
 # cloud run job
@@ -180,7 +200,7 @@ resource "google_cloud_run_v2_job" "agent_job" {
         }
       }
 
-      service_account = google_service_account.container_service_account.email
+      service_account = google_service_account.job_service_account.email
       timeout         = "3600s"
     }
   }
