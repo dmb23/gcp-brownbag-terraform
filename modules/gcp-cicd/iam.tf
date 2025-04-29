@@ -9,6 +9,7 @@ locals {
     "roles/logging.logWriter",
     "roles/run.admin",
     "roles/artifactregistry.admin",
+    "roles/secretmanager.secretAccessor",
   ]
 }
 
