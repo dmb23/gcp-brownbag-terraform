@@ -17,7 +17,7 @@ terraform {
 }
 
 locals {
-  terraform_version = "1.11"
+  mount_path = "/mnt/reports"
 }
 
 data "google_project" "project" {
@@ -109,13 +109,12 @@ resource "google_storage_bucket" "report-bucket" {
 # Secret Manager secrets
 resource "google_secret_manager_secret" "agent_secrets" {
   for_each = toset([
-    "API_KEY",
-    "DATABASE_URL",
-    # Add other secret names here
+    "ANTHROPIC_API_KEY",
+    "LOGFIRE_TOKEN",
   ])
 
   secret_id = "agent_${each.key}"
-  
+
   replication {
     auto {}
   }
@@ -132,14 +131,15 @@ resource "google_secret_manager_secret_iam_member" "secret_access" {
 
 # cloud run job
 resource "google_cloud_run_v2_job" "agent_job" {
-  name     = "agent-job"
-  location = var.region
+  name                = "agent-job"
+  location            = var.region
+  deletion_protection = false
 
   template {
     template {
       containers {
         image = "${var.region}-docker.pkg.dev/${data.google_project.project.project_id}/${google_artifact_registry_repository.cloud-run-containers.repository_id}/${var.agent_image_name}"
-        
+
         resources {
           limits = {
             cpu    = "1"
@@ -148,8 +148,8 @@ resource "google_cloud_run_v2_job" "agent_job" {
         }
 
         env {
-          name  = "BUCKET_NAME"
-          value = google_storage_bucket.report-bucket.name
+          name  = "OUTPUT_DIR"
+          value = local.mount_path
         }
 
         # Add secret environment variables
@@ -169,19 +169,19 @@ resource "google_cloud_run_v2_job" "agent_job" {
         # Mount GCS bucket using Cloud Storage FUSE
         volume_mounts {
           name       = "reports"
-          mount_path = "/mnt/reports"
+          mount_path = local.mount_path
         }
       }
 
       volumes {
         name = "reports"
-        cloud_storage {
+        gcs {
           bucket = google_storage_bucket.report-bucket.name
         }
       }
 
       service_account = google_service_account.container_service_account.email
-      timeout        = "3600s"
+      timeout         = "3600s"
     }
   }
 
