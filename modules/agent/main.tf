@@ -86,6 +86,7 @@ resource "google_secret_manager_secret" "agent_secrets" {
   for_each = toset([
     "ANTHROPIC_API_KEY",
     "LOGFIRE_TOKEN",
+    "GEMINI_API_KEY",
   ])
 
   secret_id = "agent_${each.key}"
