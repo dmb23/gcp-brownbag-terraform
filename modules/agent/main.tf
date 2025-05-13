@@ -251,3 +251,61 @@ resource "google_cloud_run_service_iam_member" "function_invoker" {
   role     = "roles/run.invoker"
   member   = "allUsers"
 }
+
+# Cloud Storage trigger for the function
+resource "google_storage_notification" "notification" {
+  bucket         = google_storage_bucket.report-bucket.name
+  payload_format = "JSON_API_V1"
+  event_types    = ["OBJECT_FINALIZE"]
+  depends_on     = [google_project_service.project_service["pubsub.googleapis.com"]]
+}
+
+# Service account for the Pub/Sub notification
+resource "google_project_service_identity" "pubsub_agent" {
+  provider = google
+  project  = data.google_project.project.project_id
+  service  = "pubsub.googleapis.com"
+}
+
+# Grant the service account permission to publish to Pub/Sub topics
+resource "google_project_iam_member" "pubsub_publisher" {
+  project = data.google_project.project.project_id
+  role    = "roles/pubsub.publisher"
+  member  = "serviceAccount:${google_project_service_identity.pubsub_agent.email}"
+}
+
+# Create a Pub/Sub topic that will trigger the Cloud Run function
+resource "google_pubsub_topic" "bucket_notifications" {
+  name = "bucket-notifications"
+}
+
+# Grant the storage service account permission to publish to this topic
+resource "google_pubsub_topic_iam_member" "publisher" {
+  topic  = google_pubsub_topic.bucket_notifications.name
+  role   = "roles/pubsub.publisher"
+  member = "serviceAccount:${google_project_service_identity.pubsub_agent.email}"
+}
+
+# Create a Pub/Sub push subscription that targets the Cloud Run function
+resource "google_pubsub_subscription" "push_subscription" {
+  name  = "push-to-function"
+  topic = google_pubsub_topic.bucket_notifications.name
+
+  push_config {
+    push_endpoint = google_cloud_run_v2_service.function_service.uri
+    
+    oidc_token {
+      service_account_email = google_service_account.function_service_account.email
+    }
+  }
+
+  depends_on = [google_cloud_run_service_iam_member.function_invoker]
+}
+
+# Add the pubsub.googleapis.com service
+resource "google_project_service" "project_service" {
+  for_each = toset(["pubsub.googleapis.com"])
+
+  service                    = each.value
+  disable_dependent_services = true
+}
