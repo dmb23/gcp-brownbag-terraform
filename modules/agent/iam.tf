@@ -75,3 +75,34 @@ resource "google_secret_manager_secret_iam_member" "function_secret_access" {
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.function_service_account.email}"
 }
+
+# IAM policy to make the function publicly accessible
+resource "google_cloud_run_service_iam_member" "function_invoker" {
+  location = google_cloud_run_v2_service.function_service.location
+  service  = google_cloud_run_v2_service.function_service.name
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}
+
+# Allow the Cloud Storage account to publish PubSub topics
+data "google_storage_project_service_account" "gcs_account" {}
+resource "google_project_iam_member" "pubsubpublisher" {
+  project = data.google_project.project.id
+  role    = "roles/pubsub.publisher"
+  member  = "serviceAccount:${data.google_storage_project_service_account.gcs_account.email_address}"
+}
+
+
+# Grant permission to receive Eventarc events
+resource "google_project_iam_member" "eventreceiver" {
+  project = data.google_project.project.id
+  role    = "roles/eventarc.eventReceiver"
+  member  = "serviceAccount:${google_service_account.function_service_account.email}"
+}
+
+# Grant permission to invoke Cloud Run services
+resource "google_project_iam_member" "runinvoker" {
+  project = data.google_project.project.id
+  role    = "roles/run.invoker"
+  member  = "serviceAccount:${google_service_account.function_service_account.email}"
+}
