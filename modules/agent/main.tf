@@ -128,6 +128,46 @@ resource "google_secret_manager_secret" "agent_secrets" {
 }
 
 
+# cloud run function
+resource "google_cloud_run_v2_service" "function_service" {
+  name     = "post-to-slack-function"
+  location = var.region
+  
+  template {
+    containers {
+      image = "${var.region}-docker.pkg.dev/${data.google_project.project.project_id}/${google_artifact_registry_repository.cloud-run-containers.repository_id}/${var.function_image_name}"
+      
+      resources {
+        limits = {
+          cpu    = "1"
+          memory = "512Mi"
+        }
+      }
+      
+      # Add secret environment variables
+      dynamic "env" {
+        for_each = google_secret_manager_secret.agent_secrets
+        content {
+          name = env.key
+          value_source {
+            secret_key_ref {
+              secret  = env.value.secret_id
+              version = "latest"
+            }
+          }
+        }
+      }
+    }
+    
+    service_account = google_service_account.job_service_account.email
+  }
+  
+  traffic {
+    type    = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"
+    percent = 100
+  }
+}
+
 # cloud run job
 resource "google_cloud_run_v2_job" "agent_job" {
   name                = "agent-job"
@@ -189,4 +229,12 @@ resource "google_cloud_run_v2_job" "agent_job" {
       launch_stage,
     ]
   }
+}
+
+# IAM policy to make the function publicly accessible
+resource "google_cloud_run_service_iam_member" "function_invoker" {
+  location = google_cloud_run_v2_service.function_service.location
+  service  = google_cloud_run_v2_service.function_service.name
+  role     = "roles/run.invoker"
+  member   = "allUsers"
 }
