@@ -5,6 +5,7 @@ locals {
     "compute.googleapis.com",
     "cloudresourcemanager.googleapis.com",
     "secretmanager.googleapis.com",
+    "pubsub.googleapis.com",
   ]
 }
 

@@ -23,8 +23,9 @@ module "gcp-cicd" {
 module "gcp-agent" {
   source = "./modules/agent/"
 
-  region           = var.region
-  agent_image_name = "grimaud"
+  region              = var.region
+  agent_image_name    = "grimaud"
+  function_image_name = "post-to-slack-function"
 }
 
 data "google_project" "project" {
