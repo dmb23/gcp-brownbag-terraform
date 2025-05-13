@@ -257,20 +257,14 @@ resource "google_storage_notification" "notification" {
   bucket         = google_storage_bucket.report-bucket.name
   payload_format = "JSON_API_V1"
   event_types    = ["OBJECT_FINALIZE"]
+  topic          = google_pubsub_topic.bucket_notifications.name
 }
 
-# Service account for the Pub/Sub notification
-resource "google_project_service_identity" "pubsub_agent" {
-  provider = google
-  project  = data.google_project.project.project_id
-  service  = "pubsub.googleapis.com"
-}
-
-# Grant the service account permission to publish to Pub/Sub topics
-resource "google_project_iam_member" "pubsub_publisher" {
+# Grant the storage service account permission to publish to Pub/Sub topics
+resource "google_project_iam_binding" "pubsub_publisher" {
   project = data.google_project.project.project_id
   role    = "roles/pubsub.publisher"
-  member  = "serviceAccount:${google_project_service_identity.pubsub_agent.email}"
+  members = ["serviceAccount:service-${data.google_project.project.number}@gs-project-accounts.iam.gserviceaccount.com"]
 }
 
 # Create a Pub/Sub topic that will trigger the Cloud Run function
