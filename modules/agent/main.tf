@@ -276,7 +276,7 @@ resource "google_pubsub_topic" "bucket_notifications" {
 resource "google_pubsub_topic_iam_member" "publisher" {
   topic  = google_pubsub_topic.bucket_notifications.name
   role   = "roles/pubsub.publisher"
-  member = "serviceAccount:${google_project_service_identity.pubsub_agent.email}"
+  member = "serviceAccount:service-${data.google_project.project.number}@gs-project-accounts.iam.gserviceaccount.com"
 }
 
 # Create a Pub/Sub push subscription that targets the Cloud Run function
