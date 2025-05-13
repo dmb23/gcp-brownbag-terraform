@@ -127,26 +127,39 @@ resource "google_secret_manager_secret" "agent_secrets" {
   }
 }
 
+# Secret Manager secrets
+resource "google_secret_manager_secret" "function_secrets" {
+  for_each = toset([
+    "SLACK_BOT_TOKEN",
+    "SLACK_CHANNEL_ID",
+  ])
+
+  secret_id = "function_${each.key}"
+
+  replication {
+    auto {}
+  }
+}
 
 # cloud run function
 resource "google_cloud_run_v2_service" "function_service" {
   name     = "post-to-slack-function"
   location = var.region
-  
+
   template {
     containers {
       image = "${var.region}-docker.pkg.dev/${data.google_project.project.project_id}/${google_artifact_registry_repository.cloud-run-containers.repository_id}/${var.function_image_name}"
-      
+
       resources {
         limits = {
           cpu    = "1"
           memory = "512Mi"
         }
       }
-      
+
       # Add secret environment variables
       dynamic "env" {
-        for_each = google_secret_manager_secret.agent_secrets
+        for_each = google_secret_manager_secret.function_secrets
         content {
           name = env.key
           value_source {
@@ -158,10 +171,10 @@ resource "google_cloud_run_v2_service" "function_service" {
         }
       }
     }
-    
-    service_account = google_service_account.job_service_account.email
+
+    service_account = google_service_account.function_service_account.email
   }
-  
+
   traffic {
     type    = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"
     percent = 100
