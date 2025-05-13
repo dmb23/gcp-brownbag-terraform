@@ -257,7 +257,6 @@ resource "google_storage_notification" "notification" {
   bucket         = google_storage_bucket.report-bucket.name
   payload_format = "JSON_API_V1"
   event_types    = ["OBJECT_FINALIZE"]
-  depends_on     = [google_project_service.project_service["pubsub.googleapis.com"]]
 }
 
 # Service account for the Pub/Sub notification
@@ -293,19 +292,11 @@ resource "google_pubsub_subscription" "push_subscription" {
 
   push_config {
     push_endpoint = google_cloud_run_v2_service.function_service.uri
-    
+
     oidc_token {
       service_account_email = google_service_account.function_service_account.email
     }
   }
 
   depends_on = [google_cloud_run_service_iam_member.function_invoker]
-}
-
-# Add the pubsub.googleapis.com service
-resource "google_project_service" "project_service" {
-  for_each = toset(["pubsub.googleapis.com"])
-
-  service                    = each.value
-  disable_dependent_services = true
 }
