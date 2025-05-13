@@ -252,31 +252,10 @@ resource "google_cloud_run_service_iam_member" "function_invoker" {
   member   = "allUsers"
 }
 
-# Cloud Storage trigger for the function
-resource "google_storage_notification" "notification" {
-  bucket         = google_storage_bucket.report-bucket.name
-  payload_format = "JSON_API_V1"
-  event_types    = ["OBJECT_FINALIZE"]
-  topic          = google_pubsub_topic.bucket_notifications.name
-}
-
-# Grant the storage service account permission to publish to Pub/Sub topics
-resource "google_project_iam_binding" "pubsub_publisher" {
-  project = data.google_project.project.project_id
-  role    = "roles/pubsub.publisher"
-  members = ["serviceAccount:service-${data.google_project.project.number}@gs-project-accounts.iam.gserviceaccount.com"]
-}
-
 # Create a Pub/Sub topic that will trigger the Cloud Run function
 resource "google_pubsub_topic" "bucket_notifications" {
   name = "bucket-notifications"
-}
-
-# Grant the storage service account permission to publish to this topic
-resource "google_pubsub_topic_iam_member" "publisher" {
-  topic  = google_pubsub_topic.bucket_notifications.name
-  role   = "roles/pubsub.publisher"
-  member = "serviceAccount:service-${data.google_project.project.number}@gs-project-accounts.iam.gserviceaccount.com"
+  depends_on = [google_project_service.pubsub_api]
 }
 
 # Create a Pub/Sub push subscription that targets the Cloud Run function
@@ -293,4 +272,52 @@ resource "google_pubsub_subscription" "push_subscription" {
   }
 
   depends_on = [google_cloud_run_service_iam_member.function_invoker]
+}
+
+# Enable the Pub/Sub API
+resource "google_project_service" "pubsub_api" {
+  service = "pubsub.googleapis.com"
+  disable_dependent_services = false
+}
+
+# Create an Eventarc trigger for Cloud Storage events
+resource "google_eventarc_trigger" "storage_trigger" {
+  name     = "storage-finalize-trigger"
+  location = var.region
+  
+  matching_criteria {
+    attribute = "type"
+    value     = "google.cloud.storage.object.v1.finalized"
+  }
+  
+  matching_criteria {
+    attribute = "bucket"
+    value     = google_storage_bucket.report-bucket.name
+  }
+  
+  destination {
+    cloud_run_service {
+      service = google_cloud_run_v2_service.function_service.name
+      region  = var.region
+    }
+  }
+  
+  service_account = google_service_account.function_service_account.email
+  
+  depends_on = [
+    google_project_service.eventarc_api,
+    google_project_service.storage_api
+  ]
+}
+
+# Enable the Eventarc API
+resource "google_project_service" "eventarc_api" {
+  service = "eventarc.googleapis.com"
+  disable_dependent_services = false
+}
+
+# Enable the Storage API
+resource "google_project_service" "storage_api" {
+  service = "storage.googleapis.com"
+  disable_dependent_services = false
 }
