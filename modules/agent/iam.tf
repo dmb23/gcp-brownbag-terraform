@@ -106,3 +106,18 @@ resource "google_project_iam_member" "runinvoker" {
   role    = "roles/run.invoker"
   member  = "serviceAccount:${google_service_account.function_service_account.email}"
 }
+
+# Create a custom role with storage.buckets.get permission
+resource "google_project_iam_custom_role" "storage_bucket_viewer" {
+  role_id     = "storageBucketViewer"
+  title       = "Storage Bucket Viewer"
+  description = "Custom role with storage.buckets.get permission"
+  permissions = ["storage.buckets.get"]
+}
+
+# Grant the custom role to the Eventarc service account
+resource "google_storage_bucket_iam_member" "eventarc_bucket_viewer" {
+  bucket = google_storage_bucket.report-bucket.name
+  role   = google_project_iam_custom_role.storage_bucket_viewer.id
+  member = "serviceAccount:${google_service_account.function_service_account.email}"
+}

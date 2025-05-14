@@ -22,4 +22,6 @@ resource "google_eventarc_trigger" "storage_trigger" {
 
   service_account = google_service_account.function_service_account.email
 
+  depends_on = [google_storage_bucket_iam_member.eventarc_bucket_viewer]
+
 }
