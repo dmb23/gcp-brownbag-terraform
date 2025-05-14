@@ -31,6 +31,15 @@ locals {
     "roles/logging.logWriter",
     "roles/storage.objectViewer",
     "roles/storage.objectCreator",
+    "roles/run.invoker",
+  ]
+
+  function_iam_roles = [
+    "roles/logging.logWriter",
+    "roles/storage.objectViewer",
+    "roles/storage.objectCreator",
+    "roles/run.invoker",
+    "roles/eventarc.eventReceiver",
   ]
 }
 
@@ -50,6 +59,14 @@ resource "google_project_iam_member" "job_iam_role" {
   member  = "serviceAccount:${google_service_account.job_service_account.email}"
 }
 
+resource "google_project_iam_member" "function_iam_role" {
+  for_each = toset(local.function_iam_roles)
+
+  project = data.google_project.project.project_id
+  role    = each.value
+  member  = "serviceAccount:${google_service_account.function_service_account.email}"
+}
+
 # Add IAM permission for Cloud Run to access secrets
 resource "google_secret_manager_secret_iam_member" "job_secret_access" {
   for_each = google_secret_manager_secret.agent_secrets
@@ -57,14 +74,6 @@ resource "google_secret_manager_secret_iam_member" "job_secret_access" {
   secret_id = each.value.id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.job_service_account.email}"
-}
-
-resource "google_project_iam_member" "function_iam_role" {
-  for_each = toset(local.job_iam_roles)
-
-  project = data.google_project.project.project_id
-  role    = each.value
-  member  = "serviceAccount:${google_service_account.function_service_account.email}"
 }
 
 # Add IAM permission for Cloud Run to access secrets
@@ -92,20 +101,6 @@ resource "google_project_iam_member" "pubsubpublisher" {
   member  = "serviceAccount:${data.google_storage_project_service_account.gcs_account.email_address}"
 }
 
-
-# Grant permission to receive Eventarc events
-resource "google_project_iam_member" "eventreceiver" {
-  project = data.google_project.project.id
-  role    = "roles/eventarc.eventReceiver"
-  member  = "serviceAccount:${google_service_account.function_service_account.email}"
-}
-
-# Grant permission to invoke Cloud Run services
-resource "google_project_iam_member" "runinvoker" {
-  project = data.google_project.project.id
-  role    = "roles/run.invoker"
-  member  = "serviceAccount:${google_service_account.function_service_account.email}"
-}
 
 # Create a custom role with storage.buckets.get permission
 resource "google_project_iam_custom_role" "storage_bucket_viewer" {
