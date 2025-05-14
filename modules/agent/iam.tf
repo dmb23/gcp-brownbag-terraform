@@ -116,3 +116,18 @@ resource "google_storage_bucket_iam_member" "eventarc_bucket_viewer" {
   role   = google_project_iam_custom_role.storage_bucket_viewer.id
   member = "serviceAccount:${google_service_account.function_service_account.email}"
 }
+
+# Create a custom role with aiplatform.endpoints.predict permission
+resource "google_project_iam_custom_role" "ai_platform_predictor" {
+  role_id     = "aiPlatformPredictor"
+  title       = "AI Platform Predictor"
+  description = "Custom role with aiplatform.endpoints.predict permission"
+  permissions = ["aiplatform.endpoints.predict"]
+}
+
+# Grant the AI Platform Predictor role to the job service account
+resource "google_project_iam_member" "job_ai_predictor" {
+  project = data.google_project.project.project_id
+  role    = google_project_iam_custom_role.ai_platform_predictor.id
+  member  = "serviceAccount:${google_service_account.job_service_account.email}"
+}
