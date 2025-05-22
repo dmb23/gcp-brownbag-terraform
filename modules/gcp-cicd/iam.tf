@@ -1,16 +1,18 @@
 locals {
   iam_roles = [
+    "roles/artifactregistry.admin",
     "roles/cloudbuild.builds.builder",
+    "roles/eventarc.developer",
     "roles/iam.serviceAccountUser",
     "roles/iam.serviceAccountAdmin",
     "roles/iam.securityAdmin",
-    "roles/storage.admin",
-    "roles/serviceusage.serviceUsageAdmin",
     "roles/logging.logWriter",
+    "roles/pubsub.editor",
     "roles/run.admin",
-    "roles/artifactregistry.admin",
     "roles/secretmanager.secretAccessor", # might be not necessary?
     "roles/secretmanager.viewer",
+    "roles/serviceusage.serviceUsageAdmin",
+    "roles/storage.admin",
   ]
 }
 
