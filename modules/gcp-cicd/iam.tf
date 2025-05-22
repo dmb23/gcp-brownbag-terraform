@@ -2,6 +2,7 @@ locals {
   iam_roles = [
     "roles/artifactregistry.admin",
     "roles/cloudbuild.builds.builder",
+    "roles/cloudscheduler.admin",
     "roles/eventarc.developer",
     "roles/iam.serviceAccountUser",
     "roles/iam.serviceAccountAdmin",
