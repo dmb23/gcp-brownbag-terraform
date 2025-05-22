@@ -79,7 +79,7 @@ resource "google_secret_manager_secret" "function_secrets" {
   }
 }
 
-# cloud run function
+# cloud run service to post to slack
 resource "google_cloud_run_v2_service" "function_service" {
   name     = "post-to-slack-function"
   location = var.region

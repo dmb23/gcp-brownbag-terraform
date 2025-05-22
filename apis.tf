@@ -7,6 +7,7 @@ locals {
     "secretmanager.googleapis.com",
     "pubsub.googleapis.com",
     "eventarc.googleapis.com",
+    "cloudscheduler.googleapis.com",
   ]
 }
 
