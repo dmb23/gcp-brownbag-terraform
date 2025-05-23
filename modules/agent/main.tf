@@ -79,6 +79,11 @@ resource "google_secret_manager_secret" "function_secrets" {
   }
 }
 
+data "google_artifact_registry_docker_image" "function_image" {
+  location      = google_artifact_registry_repository.cloud-run-containers.location
+  repository_id = google_artifact_registry_repository.cloud-run-containers.repository_id
+  image_name    = "${var.function_image_name}:latest"
+}
 # cloud run service to post to slack
 resource "google_cloud_run_v2_service" "function_service" {
   name     = "post-to-slack-function"
@@ -86,7 +91,8 @@ resource "google_cloud_run_v2_service" "function_service" {
 
   template {
     containers {
-      image = "${var.region}-docker.pkg.dev/${data.google_project.project.project_id}/${google_artifact_registry_repository.cloud-run-containers.repository_id}/${var.function_image_name}"
+      # image = "${var.region}-docker.pkg.dev/${data.google_project.project.project_id}/${google_artifact_registry_repository.cloud-run-containers.repository_id}/${var.function_image_name}"
+      image = data.google_artifact_registry_docker_image.function_image.self_link
 
       resources {
         limits = {
