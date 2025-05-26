@@ -97,7 +97,7 @@ resource "google_cloud_run_v2_service" "function_service" {
       resources {
         limits = {
           cpu    = "1"
-          memory = "512Mi"
+          memory = "1024Mi"
         }
       }
 
