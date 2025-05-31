@@ -36,8 +36,7 @@ locals {
 
   function_iam_roles = [
     "roles/logging.logWriter",
-    "roles/storage.objectViewer",
-    "roles/storage.objectCreator",
+    "roles/storage.objectUser",
     "roles/run.invoker",
     "roles/eventarc.eventReceiver",
   ]
